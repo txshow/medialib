@@ -3,7 +3,7 @@
 # Versions
 VPX_VERSION=1.13.0
 MBEDTLS_VERSION=3.4.1
-FFMPEG_VERSION=6.0
+FFMPEG_VERSION=6.1
 
 # Directories
 BASE_DIR=$(cd "$(dirname "$0")" && pwd)
@@ -15,7 +15,7 @@ VPX_DIR=$SOURCES_DIR/libvpx-$VPX_VERSION
 MBEDTLS_DIR=$SOURCES_DIR/mbedtls-$MBEDTLS_VERSION
 
 # Configuration
-ANDROID_ABIS="x86 x86_64 armeabi-v7a arm64-v8a"
+ANDROID_ABIS="armeabi-v7a arm64-v8a"
 ANDROID_PLATFORM=21
 ENABLED_DECODERS="vorbis opus flac alac pcm_mulaw pcm_alaw mp3 amrnb amrwb aac ac3 eac3 dca mlp truehd h264 hevc mpeg2video mpegvideo libvpx_vp8 libvpx_vp9"
 JOBS=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || sysctl -n hw.pysicalcpu || echo 4)
@@ -86,16 +86,6 @@ function buildLibVpx() {
     arm64-v8a)
       EXTRA_BUILD_FLAGS="--force-target=armv8-android-gcc"
       TOOLCHAIN=aarch64-linux-android21-
-      ;;
-    x86)
-      EXTRA_BUILD_FLAGS="--force-target=x86-android-gcc --disable-sse2 --disable-sse3 --disable-ssse3 --disable-sse4_1 --disable-avx --disable-avx2 --enable-pic"
-      VPX_AS=${TOOLCHAIN_PREFIX}/bin/yasm
-      TOOLCHAIN=i686-linux-android21-
-      ;;
-    x86_64)
-      EXTRA_BUILD_FLAGS="--force-target=x86_64-android-gcc --disable-sse2 --disable-sse3 --disable-ssse3 --disable-sse4_1 --disable-avx --disable-avx2 --enable-pic --disable-neon --disable-neon-asm"
-      VPX_AS=${TOOLCHAIN_PREFIX}/bin/yasm
-      TOOLCHAIN=x86_64-linux-android21-
       ;;
     *)
       echo "Unsupported architecture: $ABI"
@@ -184,17 +174,6 @@ function buildFfmpeg() {
       CPU=armv8-a
       ARCH=aarch64
       ;;
-    x86)
-      TOOLCHAIN=i686-linux-android21-
-      CPU=i686
-      ARCH=i686
-      EXTRA_BUILD_CONFIGURATION_FLAGS=--disable-asm
-      ;;
-    x86_64)
-      TOOLCHAIN=x86_64-linux-android21-
-      CPU=x86_64
-      ARCH=x86_64
-      ;;
     *)
       echo "Unsupported architecture: $ABI"
       exit 1
@@ -220,8 +199,8 @@ function buildFfmpeg() {
       --extra-ldflags="$DEP_LD_FLAGS" \
       --pkg-config="$(which pkg-config)" \
       --target-os=android \
-      --enable-shared \
-      --disable-static \
+      --enable-static \
+      --disable-shared \
       --disable-doc \
       --disable-programs \
       --disable-everything \
@@ -250,6 +229,24 @@ function buildFfmpeg() {
     make -j$JOBS
     make install
 
+  # 合并静态库为动态库
+    MERGE_DIR="${BUILD_DIR}/${ABI}/merge"
+    mkdir -p "${MERGE_DIR}"
+    pushd "${MERGE_DIR}"
+    for lib in ${BUILD_DIR}/${ABI}/lib/*.a; do
+        ar x "$lib"
+    done
+    ${TOOLCHAIN_PREFIX}/bin/${TOOLCHAIN}clang \
+        -shared \
+        -o libffmpeg.so \
+        *.o \
+        -L${BUILD_DIR}/external/${ABI}/lib \
+        -lvpx -lmbedtls -lmbedcrypto -lmbedx509 \
+        -llog -landroid
+    cp libffmpeg.so "${OUTPUT_LIB}/"
+    popd
+    rm -rf "${MERGE_DIR}"
+  
     OUTPUT_LIB=${OUTPUT_DIR}/lib/${ABI}
     mkdir -p "${OUTPUT_LIB}"
     cp "${BUILD_DIR}"/"${ABI}"/lib/*.so "${OUTPUT_LIB}"
