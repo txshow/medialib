@@ -32,15 +32,14 @@ foreach (ffmpeg_lib_name ${ffmpeg_libs_names})
             ${ffmpeg_libs}/lib${ffmpeg_lib_name}.so)
 endforeach ()
 
-add_library(${CMAKE_PROJECT_NAME} SHARED
-        # List C/C++ source files with relative paths to this CMakeLists.txt.
-        ffmain.cpp
-        ffcommon.cpp
-        ffaudio.cpp
-        ffvideo.cpp)
+# 删除原有的foreach循环，替换为：
+add_library(ffmpeg SHARED IMPORTED)
+set_target_properties(ffmpeg PROPERTIES
+        IMPORTED_LOCATION
+        ${ffmpeg_libs}/libffmpeg.so)
 
+# 修改target_link_libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
-        # List libraries link to the target library
         log
         android
-        ${ffmpeg_libs_names})
+        ffmpeg)
