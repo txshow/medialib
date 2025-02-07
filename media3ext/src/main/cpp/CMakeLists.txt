@@ -36,7 +36,7 @@ endforeach ()
 add_library(ffmpeg SHARED IMPORTED)
 set_target_properties(ffmpeg PROPERTIES
         IMPORTED_LOCATION
-        ${ffmpeg_libs}/libffmpeg.so)
+        ${ffmpeg_libs}/libmedia3ext.so)
 
 # 修改target_link_libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}

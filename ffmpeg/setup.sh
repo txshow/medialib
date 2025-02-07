@@ -238,12 +238,12 @@ function buildFfmpeg() {
     done
     ${TOOLCHAIN_PREFIX}/bin/${TOOLCHAIN}clang \
         -shared \
-        -o libffmpeg.so \
+        -o libmedia3ext.so \
         *.o \
         -L${BUILD_DIR}/external/${ABI}/lib \
         -lvpx -lmbedtls -lmbedcrypto -lmbedx509 \
         -llog -landroid
-    cp libffmpeg.so "${OUTPUT_LIB}/"
+    cp libmedia3ext.so "${OUTPUT_LIB}/"
     popd
     rm -rf "${MERGE_DIR}"
   
