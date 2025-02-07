@@ -229,27 +229,11 @@ function buildFfmpeg() {
     make -j$JOBS
     make install
 
-  # 合并静态库为动态库
-    MERGE_DIR="${BUILD_DIR}/${ABI}/merge"
-    mkdir -p "${MERGE_DIR}"
-    pushd "${MERGE_DIR}"
-    for lib in ${BUILD_DIR}/${ABI}/lib/*.a; do
-        ar x "$lib"
-    done
-    ${TOOLCHAIN_PREFIX}/bin/${TOOLCHAIN}clang \
-        -shared \
-        -o libmedia3ext.so \
-        *.o \
-        -L${BUILD_DIR}/external/${ABI}/lib \
-        -lvpx -lmbedtls -lmbedcrypto -lmbedx509 \
-        -llog -landroid
-    cp libmedia3ext.so "${OUTPUT_LIB}/"
-    popd
-    rm -rf "${MERGE_DIR}"
+
   
     OUTPUT_LIB=${OUTPUT_DIR}/lib/${ABI}
     mkdir -p "${OUTPUT_LIB}"
-    cp "${BUILD_DIR}"/"${ABI}"/lib/*.so "${OUTPUT_LIB}"
+    cp "${BUILD_DIR}"/"${ABI}"/lib/*.a "${OUTPUT_LIB}"
 
     OUTPUT_HEADERS=${OUTPUT_DIR}/include/${ABI}
     mkdir -p "${OUTPUT_HEADERS}"

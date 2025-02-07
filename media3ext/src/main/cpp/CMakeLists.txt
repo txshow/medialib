@@ -23,23 +23,27 @@ set(
 foreach (ffmpeg_lib_name ${ffmpeg_libs_names})
     add_library(
             ${ffmpeg_lib_name}
-            SHARED
+            STATIC
             IMPORTED)
     set_target_properties(
             ${ffmpeg_lib_name}
             PROPERTIES
             IMPORTED_LOCATION
-            ${ffmpeg_libs}/lib${ffmpeg_lib_name}.so)
+            ${ffmpeg_libs}/lib${ffmpeg_lib_name}.a)
 endforeach ()
 
-# 删除原有的foreach循环，替换为：
-add_library(ffmpeg SHARED IMPORTED)
-set_target_properties(ffmpeg PROPERTIES
-        IMPORTED_LOCATION
-        ${ffmpeg_libs}/libmedia3ext.so)
+add_library(${CMAKE_PROJECT_NAME} SHARED
+        # List C/C++ source files with relative paths to this CMakeLists.txt.
+        ffmain.cpp
+        ffcommon.cpp
+        ffaudio.cpp
+        ffvideo.cpp)
 
-# 修改target_link_libraries
 target_link_libraries(${CMAKE_PROJECT_NAME}
-        log
-        android
-        ffmpeg)
+        # List libraries link to the target library
+            PRIVATE
+            -Wl,--whole-archive
+            ${ffmpeg_libs_names}
+            -Wl,--no-whole-archive
+            log
+            android)
