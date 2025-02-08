@@ -25,4 +25,4 @@ jobs:
       - uses: actions/upload-artifact@v4.5.0
         with:
           name: nextlib-release.aar
-          path: ./*/build/outputs/aar/*.aar
+          path: ./ffmpeg/output
