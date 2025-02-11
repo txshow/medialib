@@ -13,3 +13,37 @@ set(ffmpeg_dir ${CMAKE_SOURCE_DIR}/../../../../ffmpeg/output)
 set(ffmpeg_libs ${ffmpeg_dir}/lib/${ANDROID_ABI})
 
 include_directories(${ffmpeg_dir}/include/${ANDROID_ABI})
+
+set(
+        # List variable name
+        ffmpeg_libs_names
+        # Values in the list
+        avutil avcodec swresample swscale)
+
+foreach (ffmpeg_lib_name ${ffmpeg_libs_names})
+    add_library(
+            ${ffmpeg_lib_name}
+            STATIC
+            IMPORTED)
+    set_target_properties(
+            ${ffmpeg_lib_name}
+            PROPERTIES
+            IMPORTED_LOCATION
+            ${ffmpeg_libs}/lib${ffmpeg_lib_name}.a)
+endforeach ()
+
+add_library(${CMAKE_PROJECT_NAME} SHARED
+        # List C/C++ source files with relative paths to this CMakeLists.txt.
+        ffmain.cpp
+        ffcommon.cpp
+        ffaudio.cpp
+        ffvideo.cpp)
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+        # List libraries link to the target library
+            PRIVATE
+            -Wl,--whole-archive
+            ${ffmpeg_libs_names}
+            -Wl,--no-whole-archive
+            log
+            android)

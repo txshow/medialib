@@ -229,8 +229,6 @@ function buildFfmpeg() {
     make -j$JOBS
     make install
 
-
-  
     OUTPUT_LIB=${OUTPUT_DIR}/lib/${ABI}
     mkdir -p "${OUTPUT_LIB}"
     cp "${BUILD_DIR}"/"${ABI}"/lib/*.a "${OUTPUT_LIB}"
