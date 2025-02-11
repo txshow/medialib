@@ -6,13 +6,13 @@ on:
 jobs:
   build:
     name: Build nextlib
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Set Up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
@@ -25,4 +25,4 @@ jobs:
       - uses: actions/upload-artifact@v4.5.0
         with:
           name: nextlib-release.aar
-          path: ./ffmpeg/output
+          path: ./*/build/outputs/aar/*.aar
